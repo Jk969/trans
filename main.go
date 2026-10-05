@@ -11,9 +11,16 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	_ "embed"
 )
 
-var version = "0.3.1"
+// 版本号单一来源：根目录 VERSION 文件（改版本只改它）
+//
+//go:embed VERSION
+var versionData string
+
+var version = strings.TrimSpace(versionData)
 
 func main() {
 	quiet := flag.Bool("quiet", false, "启动后不自动打开浏览器（开机自启用）")

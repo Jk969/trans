@@ -1,8 +1,15 @@
 @echo off
 rem Trans 一键构建：图标 -> exe(图标+版本) -> 安装包
+rem 版本号单一来源：仓库根目录 VERSION 文件
 cd /d "%~dp0"
 
-set VERSION=0.3.1
+set VERSION=
+for /f "usebackq delims=" %%v in ("VERSION") do set VERSION=%%v
+if "%VERSION%"=="" (
+  echo VERSION 文件缺失或为空
+  goto :fail
+)
+echo 版本: %VERSION%
 
 echo [1/5] 生成图标...
 go run ./tools/makeicon || goto :fail
@@ -16,6 +23,7 @@ go build -trimpath -ldflags "-H=windowsgui -s -w" -o trans.exe . || goto :fail
 echo [4/5] 准备安装器 payload...
 if not exist installer\setup\payload mkdir installer\setup\payload
 copy /y trans.exe installer\setup\payload\trans.exe >nul || goto :fail
+copy /y VERSION installer\setup\VERSION >nul || goto :fail
 go run ./tools/mkversion -spec installer\setup\versioninfo.json -icon installer\trans.ico -o installer\setup\resource.syso || goto :fail
 
 echo [5/5] 构建安装包...

@@ -1,33 +1,12 @@
 {
-  "FixedFileInfo": {
-    "FileVersion": {
-      "Major": 0,
-      "Minor": 3,
-      "Patch": 1,
-      "Build": 0
-    },
-    "ProductVersion": {
-      "Major": 0,
-      "Minor": 3,
-      "Patch": 1,
-      "Build": 0
-    },
-    "FileFlagsMask": "3f",
-    "FileFlags": "00",
-    "FileOS": "040004",
-    "FileType": "01",
-    "FileSubType": "00"
-  },
   "StringFileInfo": {
     "Comments": "局域网文件/文本传输站",
     "CompanyName": "Trans",
     "FileDescription": "Trans 局域网传输站",
-    "FileVersion": "0.3.1.0",
     "InternalName": "trans",
     "LegalCopyright": "",
     "OriginalFilename": "trans.exe",
-    "ProductName": "Trans",
-    "ProductVersion": "0.3.1"
+    "ProductName": "Trans"
   },
   "VarFileInfo": {
     "Translation": {

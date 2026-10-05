@@ -29,7 +29,12 @@ import (
 //go:embed payload/trans.exe
 var payload []byte
 
-var version = "0.3.1"
+// 版本号来源：构建时由 build.bat 从根目录 VERSION 复制而来
+//
+//go:embed VERSION
+var versionData string
+
+var version = strings.TrimSpace(versionData)
 
 const (
 	appName   = "Trans"

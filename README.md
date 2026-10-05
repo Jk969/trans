@@ -122,7 +122,9 @@ go run ./tools/mkversion       只重新生成 exe 版本资源（resource.syso�
 go build -o trans-dev.exe .    调试版（带控制台日志）
 ```
 
-图标与版本信息说明：`tools/makeicon` 用超采样绘制渐变方块+双箭头图标并合成多尺寸 .ico；`tools/mkversion` 读取 `versioninfo.json`（改版本号在这里 + main.go 的 version 常量 + build.bat 的 VERSION）生成 `resource.syso`，`go build` 自动打进 exe；安装器是 `installer/setup`（Go 自研，内嵌 trans.exe，支持静默安装/完整卸载）。
+图标与版本信息说明：`tools/makeicon` 用超采样绘制渐变方块+双箭头图标并合成多尺寸 .ico；`tools/mkversion` 生成 `resource.syso`（版本号从根目录 **VERSION** 文件注入），`go build` 自动打进 exe；安装器是 `installer/setup`（Go 自研，内嵌 trans.exe，支持静默安装/完整卸载）。
+
+**版本号单一来源**：升版本只改根目录 `VERSION` 文件（如 `0.3.2`），`build.bat`、exe 资源信息、安装器全部自动跟随。
 
 ## 架构一览
 

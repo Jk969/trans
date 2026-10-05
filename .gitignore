@@ -5,4 +5,5 @@
 resource.syso
 installer/setup/resource.syso
 installer/setup/payload/
+installer/setup/VERSION
 dist/
