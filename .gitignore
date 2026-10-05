@@ -1,0 +1,8 @@
+*.exe
+*.test
+*.out
+*.pid
+resource.syso
+installer/setup/resource.syso
+installer/setup/payload/
+dist/

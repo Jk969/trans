@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f6fed">
+<title>Trans 传输</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="banner" class="hidden">
+  <span id="bannerText">已断开，正在重连…</span>
+  <button id="bannerRetry" class="mini">重试</button>
+</div>
+
+<div class="layout">
+  <!-- PC 控制台侧栏（宽屏显示） -->
+  <aside id="console">
+    <h1>Trans <small id="verTag"></small></h1>
+    <div class="qrbox">
+      <img id="qrImg" alt="扫码访问">
+      <select id="ipSelect"></select>
+      <div class="urlline"><span id="urlText"></span><button id="copyUrl" class="mini">复制</button></div>
+      <p class="hint">手机扫码打开；连不上看下方检查清单</p>
+    </div>
+    <details class="fw">
+      <summary>连不上？检查清单</summary>
+      <ol>
+        <li>Windows 首次运行弹出的防火墙窗口要点「允许」</li>
+        <li>当前网络若是「公用网络」，要改成「专用网络」（设置 → 网络和 Internet → 属性）</li>
+        <li>手机和电脑要连同一个路由器</li>
+        <li>IP 变了：切换上面下拉里的其它 IP 再扫</li>
+      </ol>
+    </details>
+    <div class="stat">
+      <h3>共享位置 <button id="addRootBtn" class="mini">＋ 添加</button></h3>
+      <div id="rootList"></div>
+      <p class="hint">手机「文件」页能浏览的范围；可添加如 D:\ 或 D:\Movies</p>
+      <h3>暂存副本 <button id="clearCache" class="mini danger">清理</button></h3>
+      <div class="bar"><i id="cacheBar"></i></div>
+      <p id="cacheText" class="hint"></p>
+      <label class="chk"><input type="checkbox" id="autostartChk"> 登录后自动启动</label>
+      <p id="sendtoState" class="hint"></p>
+    </div>
+    <div class="stat">
+      <h3>剪贴板 <button id="clipPauseBtn" class="mini">暂停10分钟</button></h3>
+      <label class="chk"><input type="checkbox" id="clipWatchChk" checked> 监听电脑剪贴板（复制的文字自动进传输流）</label>
+      <p class="hint">复制密码/验证码前点「暂停10分钟」，或在托盘菜单暂停</p>
+      <h3>访问 PIN <button id="pinBtn" class="mini">设置</button></h3>
+      <p id="pinState" class="hint"></p>
+      <p id="ffmpegState" class="hint"></p>
+    </div>
+  </aside>
+
+  <main id="main">
+    <header class="topbar">
+      <span class="dot" id="connDot"></span>
+      <span id="tabTitle">传输</span>
+    </header>
+
+    <!-- 传输流 -->
+    <section id="view-stream" class="view">
+      <div id="clipBanner" class="clipbanner hidden">
+        <span id="clipBannerText">检测到复制了文件</span>
+        <span>
+          <button id="clipStageBtn" class="mini">上架</button>
+          <button id="clipIgnoreBtn" class="mini">忽略</button>
+        </span>
+      </div>
+      <div id="a2hsCard" class="clipbanner hidden">
+        <span>把这页加到主屏幕，下次一点就开（浏览器菜单 → 添加到主屏幕）</span>
+        <button id="a2hsClose" class="mini">知道了</button>
+      </div>
+      <div id="streamList"></div>
+      <div id="streamEmpty" class="empty hidden">
+        <p>还没有内容</p>
+        <p class="hint">电脑上把文件拖进本页 / 右键文件「发送到 Trans」/ 直接复制文字<br>或点 ＋ 上传、下方发文字</p>
+      </div>
+      <div class="composer">
+        <textarea id="textInput" rows="1" placeholder="发文字…"></textarea>
+        <button id="sendBtn">发送</button>
+      </div>
+    </section>
+
+    <!-- 文件浏览 -->
+    <section id="view-files" class="view hidden">
+      <div class="fbar">
+        <input id="searchInput" type="search" placeholder="搜索文件名…">
+        <button id="selModeBtn" class="mini" title="多选">☰ 多选</button>
+        <button id="pinBtn2" class="mini" title="收藏当前目录">☆ 收藏</button>
+      </div>
+      <div id="pinnedRow" class="chips hidden"></div>
+      <div id="recentRow" class="chips hidden"></div>
+      <div id="crumbs" class="crumbs"></div>
+      <div id="fileList"></div>
+      <div id="selectBar" class="selectbar hidden">
+        <span id="selCount">已选 0 项</span>
+        <span>
+          <button id="selZipBtn" class="mini">打包下载</button>
+          <button id="selStreamBtn" class="mini">发到传输流</button>
+          <button id="selCancelBtn" class="mini">取消</button>
+        </span>
+      </div>
+    </section>
+
+    <!-- 相册 -->
+    <section id="view-media" class="view hidden">
+      <div class="fbar">
+        <span class="hint" id="mediaSummary" style="flex:1;align-self:center">扫描所有共享位置的图片和视频</span>
+        <button id="mediaRefresh" class="mini">刷新</button>
+      </div>
+      <div id="mediaList"></div>
+    </section>
+
+    <button id="fab" title="上传">＋</button>
+
+    <nav class="tabs">
+      <button data-tab="stream" class="active">传输</button>
+      <button data-tab="files">文件</button>
+      <button data-tab="media">相册</button>
+    </nav>
+  </main>
+</div>
+
+<!-- 视频播放 -->
+<div id="playerOverlay" class="overlay hidden">
+  <div class="playerWrap">
+    <div class="pnamebar"><span id="playerName"></span><span><button class="mini tcbtn hidden" id="tcBtn">转码播放</button><button class="xbtn" data-close="playerOverlay">×</button></span></div>
+    <video id="player" controls playsinline></video>
+    <div class="speedrow" id="speedRow">
+      <button data-rate="0.5">0.5x</button><button data-rate="1" class="on">1x</button>
+      <button data-rate="1.25">1.25x</button><button data-rate="1.5">1.5x</button><button data-rate="2">2x</button>
+      <span class="hint" id="nextHint"></span>
+    </div>
+  </div>
+</div>
+
+<!-- 图片预览 -->
+<div id="imageOverlay" class="overlay hidden">
+  <button class="xbtn" data-close="imageOverlay">×</button>
+  <img id="imgView" alt="">
+  <button class="navbtn" id="imgPrev">‹</button>
+  <button class="navbtn" id="imgNext">›</button>
+</div>
+
+<!-- 文本查看 -->
+<div id="textOverlay" class="overlay hidden">
+  <div class="textSheet">
+    <div class="pnamebar">
+      <span id="textName"></span>
+      <span><button class="mini" id="textCopyBtn">复制</button><button class="xbtn" data-close="textOverlay">×</button></span>
+    </div>
+    <pre id="textView"></pre>
+  </div>
+</div>
+
+<!-- 通用菜单 -->
+<div id="menuOverlay" class="overlay hidden"><div class="menuSheet" id="menuSheet"></div></div>
+
+<!-- 条目二维码 -->
+<div id="qrOverlay" class="overlay hidden">
+  <div class="pauseBox">
+    <img id="qrView" alt="" style="width:240px;height:240px;background:#fff;border-radius:10px;padding:8px">
+    <p class="hint">手机相机扫码直接打开这个文件</p>
+    <button class="big" data-close="qrOverlay">关闭</button>
+  </div>
+</div>
+
+<!-- 上传面板 -->
+<div id="uploadOverlay" class="overlay hidden">
+  <div class="uploadSheet">
+    <div class="pnamebar"><span>上传到电脑</span><button class="xbtn" data-close="uploadOverlay">×</button></div>
+    <div class="destRow" id="destRow">
+      <label><input type="radio" name="dest" value="stream" checked> 发到传输流</label>
+      <label id="destDirOpt"><input type="radio" name="dest" value="dir"> 存到当前目录</label>
+    </div>
+    <p id="uploadHint" class="hint hidden" style="margin:0 0 6px">⚠ 上传中请保持本页面打开，锁屏/切后台会中断（大文件支持断点续传）</p>
+    <div class="srcRow">
+      <button id="pickMedia" class="big">相册 / 文件</button>
+      <button id="pickCam" class="big">拍照</button>
+    </div>
+    <input type="file" id="fileInput" multiple hidden>
+    <input type="file" id="camInput" accept="image/*" capture="environment" hidden>
+    <div id="queue"></div>
+  </div>
+</div>
+
+<div id="dropOverlay" class="overlay hidden"><div class="dropHint">松开即发送到传输流<br><small>文件夹会递归展开</small></div></div>
+
+<div id="pauseOverlay" class="overlay hidden">
+  <div class="pauseBox"><p>服务已暂停</p><p class="hint">在电脑右下角托盘菜单中选择「恢复服务」</p></div>
+</div>
+
+<div id="connOverlay" class="overlay hidden">
+  <div class="pauseBox">
+    <p>无法连接服务</p>
+    <p class="hint">请确认电脑端 Trans 正在运行、且手机与电脑在同一个网络</p>
+    <button id="retryBtn" class="big">重试</button>
+  </div>
+</div>
+
+<!-- PIN 门禁 -->
+<div id="pinOverlay" class="overlay hidden">
+  <div class="pauseBox">
+    <p>需要访问 PIN</p>
+    <input id="pinInput" type="password" placeholder="输入 PIN" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:10px;font-size:16px;margin-bottom:12px">
+    <button id="pinSubmit" class="big">进入</button>
+  </div>
+</div>
+
+<div id="toast" class="hidden"></div>
+<script src="app.js"></script>
+</body>
+</html>
